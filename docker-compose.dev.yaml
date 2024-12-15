@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  express-server:
+    build:
+      context: ./express-server
+      dockerfile: Dockerfile.dev
+    container_name: express-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./express-server:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET_KEY=your_secret_key
+      - ENCRYPTION_KEY=your_encryption_key
+      - MONGO_URI=mongodb://mongo:27017/instant_messaging
+    depends_on:
+      - go-service
+      - mongo
+    command: npm run dev # Runs the Express server in dev mode
+
+  go-service:
+    build:
+      context: ./go-service
+      dockerfile: Dockerfile.dev
+    container_name: go-service
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./go-service:/app
+    environment:
+      - NODE_ENV=development
+    command: go run main.go # Runs the Go service in dev mode
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
